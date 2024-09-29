@@ -18,5 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('user/', include('anymore.urls')),
+    path('api/', include('anymore.urls')),  # 앱의 urls.py를 포함시킴
 ]
+
+

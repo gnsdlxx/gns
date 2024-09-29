@@ -1,30 +1,15 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import get_user_model
+from dj_rest_auth.registration.serializers import RegisterSerializer
 
-class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True) 
+User = get_user_model()
 
-    class Meta:
-        model = User
-        fields = ('username', 'password', 'password2', 'email', 'first_name', 'last_name')
+class CustomRegisterSerializer(RegisterSerializer):
+    nickname = serializers.CharField(max_length=50)
+    name = serializers.CharField(max_length=100)
 
-    # 비밀번호 확인을 위한 추가 검증 로직
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
-        return attrs
-
-    def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
-
-        user.set_password(validated_data['password']) 
-        user.save()
-
-        return user
+    def get_cleaned_data(self):
+        data = super().get_cleaned_data()
+        data['nickname'] = self.validated_data.get('nickname', '')
+        data['name'] = self.validated_data.get('name', '')
+        return data
