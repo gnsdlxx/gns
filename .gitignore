@@ -5,7 +5,7 @@ __pycache__/
 # 가상 환경
 venv/
 env/
-animal/
+
 
 # 데이터베이스 파일
 db.sqlite3
