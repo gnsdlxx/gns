@@ -1,9 +1,7 @@
-from django.urls import path, include
-from .views import CustomRegisterView
+from django.urls import path
+from .views import SignupView, LoginView
 
 urlpatterns = [
-    # dj-rest-auth 기본 제공 API
-    path('auth/', include('dj_rest_auth.urls')),
-    path('auth/registration/', CustomRegisterView.as_view(), name='custom_registration'),
-    path('accounts/', include('allauth.urls')),  # django-allauth 경로 (소셜 로그인 지원)
+    path('signup/', SignupView.as_view(), name='signup'),
+    path('login/', LoginView.as_view(), name='login'),
 ]

@@ -1,15 +1,38 @@
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from dj_rest_auth.registration.serializers import RegisterSerializer
+from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.password_validation import validate_password
+from rest_framework.authtoken.models import Token
 
 User = get_user_model()
 
-class CustomRegisterSerializer(RegisterSerializer):
-    nickname = serializers.CharField(max_length=50)
-    name = serializers.CharField(max_length=100)
+class SignupSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
 
-    def get_cleaned_data(self):
-        data = super().get_cleaned_data()
-        data['nickname'] = self.validated_data.get('nickname', '')
-        data['name'] = self.validated_data.get('name', '')
-        return data
+    class Meta:
+        model = User
+        fields = ('username', 'password', 'password2', 'email')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        return attrs
+
+    def create(self, validated_data):
+        user = User.objects.create(
+            username=validated_data['username'],
+            email=validated_data['email']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = authenticate(username=data['username'], password=data['password'])
+        if user is None:
+            raise serializers.ValidationError("Invalid credentials.")
+        return {'user': user}
